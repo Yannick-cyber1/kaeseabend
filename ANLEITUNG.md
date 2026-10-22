@@ -61,3 +61,4 @@ Geänderte Datei auf GitHub im Repository wieder per **Add file → Upload files
 - **Pause bei Supabase:** Gratis-Projekte pausieren nach etwa einer Woche ohne Nutzung. Dann zeigt die App einen Verbindungsfehler. Lösung: bei supabase.com einloggen, Projekt öffnen und auf **Restore project** klicken.
 - **Wer den Link hat, kann eintragen.** Für eine Freundesgruppe passt das. Teile den Link einfach nicht öffentlich.
 - Ein Käse kann in seiner Detailansicht ganz unten gelöscht werden. Dabei verschwinden auch seine Bewertungen.
+
