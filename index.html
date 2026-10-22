@@ -1,27 +1,427 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Käseabend</title>
-  <meta name="description" content="Käse gemeinsam bewerten – mit Gruppen- und Einzelranglisten.">
-  <meta name="theme-color" content="#f7f3ea" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Käseabend – Tasting & Scorecard</title>
+  <meta name="theme-color" content="#0c0a09">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Käseabend">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" href="icons/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- App JavaScript Logic (Modul: lädt logic.js, store.js, config.js) -->
+  <script type="module" src="app.js"></script>
 </head>
-<body>
-  <div id="app" aria-live="polite">
-    <div class="loading">Lade Käse …</div>
+<body class="bg-stone-900 text-stone-100 min-h-screen antialiased flex flex-col selection:bg-amber-500 selection:text-stone-950">
+
+  <div class="sticky top-0 z-40" style="padding-top: env(safe-area-inset-top)">
+  <!-- Header -->
+  <header class="border-b border-stone-800 bg-stone-950/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-stone-950 font-bold text-xl shadow-lg shadow-amber-500/20">
+          🧀
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Käseabend <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">Tasting Suite</span>
+          </h1>
+          <p class="text-xs text-stone-400">Sensorische 1.0–10.0 Bewertung (0,5er Schritte)</p>
+        </div>
+      </div>
+
+      <!-- Quick Tester Switcher in Header -->
+      <div class="flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-xl p-1.5 shadow-inner max-w-full">
+        <span class="text-xs font-semibold text-stone-400 pl-2 hidden sm:inline">Tester:</span>
+        <div id="header-tester-pills" class="flex items-center gap-1 overflow-x-auto"></div>
+        <button onclick="openTesterModal()" title="Tester verwalten" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center text-sm transition">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="border-b border-stone-800/80 bg-stone-900/90 backdrop-blur no-print">
+    <div class="max-w-6xl mx-auto px-4 flex gap-1 sm:gap-2 overflow-x-auto py-2 text-sm font-medium">
+      <button onclick="switchTab('taste')" id="tab-btn-taste" class="tab-btn px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-semibold flex items-center gap-2 transition whitespace-nowrap">
+        <span>✍️</span> Verkostung
+      </button>
+      <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
+        <span>🏆</span> Rangliste & Awards
+      </button>
+      <button onclick="switchTab('matrix')" id="tab-btn-matrix" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
+        <span>📊</span> Noten-Matrix
+      </button>
+      <button onclick="switchTab('manage')" id="tab-btn-manage" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
+        <span>🧀</span> Käse verwalten
+      </button>
+    </div>
+  </nav>
   </div>
-  <div id="sheet-root"></div>
-  <div id="toast" role="status"></div>
-  <script type="module" src="js/app.js"></script>
+
+  <!-- Main Content Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
+    <div id="status-banner" class="hidden"></div>
+
+    <!-- TAB 1: VERKOSTUNG -->
+    <div id="tab-taste" class="tab-content space-y-6">
+      <div id="taste-empty" class="hidden bg-stone-950/60 border border-stone-800 rounded-2xl p-10 text-center">
+        <div class="text-5xl mb-3">🧀</div>
+        <div class="text-lg font-bold text-white mb-1">Noch kein Käse auf dem Teller</div>
+        <p class="text-sm text-stone-400 mb-5">Lege den ersten Käse an – alle sehen ihn sofort.</p>
+        <button onclick="openCheeseModal(null)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm transition">+ Käse anlegen</button>
+      </div>
+      <div id="taste-main" class="space-y-6">
+
+      <!-- Top Selection Bar: Cheese + Round Selector -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-stone-950/60 border border-stone-800/80 p-4 rounded-2xl shadow-xl">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">Aktuell im Glas & auf dem Teller</label>
+          <div class="flex gap-2">
+            <select id="select-cheese" onchange="onCheeseChange()" class="flex-1 min-w-0 w-full bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5 text-base font-semibold text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
+              <!-- Filled via JS -->
+            </select>
+            <button onclick="openCheeseModal(null)" class="shrink-0 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white rounded-xl text-sm font-medium border border-stone-700 flex items-center gap-1 transition">
+              <span>+</span> Neu
+            </button>
+          </div>
+          <div id="cheese-badge-desc" class="mt-2 text-xs text-stone-400 flex flex-wrap gap-2 items-center">
+            <!-- Dynamic Category & Milk -->
+          </div>
+        </div>
+
+        <div class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs text-stone-400">
+            <span>Aktiver Tester:</span>
+            <span id="active-tester-name" class="font-bold text-amber-400 text-sm">Yannick</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <div>
+              <div class="text-[10px] uppercase text-stone-500 font-semibold">Deine Gesamtnote</div>
+              <div class="text-2xl font-black text-amber-400 font-mono" id="current-total-live">7.5 <span class="text-xs text-stone-500 font-normal">/ 10</span></div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] uppercase text-stone-500 font-semibold">Gruppen-Schnitt</div>
+              <div class="text-xl font-bold text-stone-200 font-mono" id="cheese-group-avg">-- <span class="text-xs text-stone-500 font-normal">/ 10</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating Sliders (5 Sensorik Categories) -->
+      <div class="bg-stone-950/40 border border-stone-800/80 rounded-2xl p-4 sm:p-6 space-y-6">
+        <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>🔬</span> Sensorische Bewertung
+            </h2>
+            <p class="text-xs text-stone-400">Punkte von 1.0 (schwach) bis 10.0 (Spitzenklasse) in 0,5er Schritten</p>
+          </div>
+          <button onclick="resetCurrentFormToDefault()" class="text-xs text-stone-400 hover:text-amber-400 transition underline underline-offset-2">
+            Zurücksetzen
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6" id="rating-sliders-container">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Flavor Tags & Notes -->
+        <div class="pt-4 border-t border-stone-800/80 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-2">Aromaprofil & Assoziationen (Schnellauswahl)</label>
+            <div id="flavor-tags" class="flex flex-wrap gap-1.5">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-2">Persönliche Verkostungsnotiz</label>
+            <textarea id="tasting-notes" rows="3" placeholder="z. B. Wunderbare Salzkristalle, harmoniert perfekt mit Feigensenf..." class="w-full bg-stone-900 border border-stone-800 rounded-xl p-2.5 text-xs text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition"></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-3">
+          <button id="save-btn" onclick="saveRating(false)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+            <span>💾</span> Bewertung sichern
+          </button>
+          <button id="save-next-btn" onclick="saveRating(true)" class="px-5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 hover:text-white font-semibold text-sm border border-stone-700 transition flex items-center gap-2">
+            <span>➡️</span> Sichern & Nächster Tester
+          </button>
+        </div>
+        <p id="form-status" class="text-[11px] text-stone-500 text-right"></p>
+      </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: RANGLISTE & AWARDS -->
+    <div id="tab-leaderboard" class="tab-content hidden space-y-6">
+      
+      <!-- Special Awards Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="awards-container">
+        <!-- Rendered via JS: Aroma-Bombe, Schmelz-Champion, Spaltpilz, Konsens -->
+      </div>
+
+      <!-- Podium & Table Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Podium Top 3 -->
+        <div class="lg:col-span-1 bg-stone-950/60 border border-stone-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1">
+              <span>👑</span> Käsekönig & Podium
+            </h3>
+            <p class="text-xs text-stone-400 mb-4">Höchste Gesamtdurchschnitte der Gruppe</p>
+            <div id="podium-view" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-stone-800/80">
+            <h4 class="text-xs font-semibold text-stone-400 mb-2">Aroma-Radar (Sieger vs. Durchschnitt)</h4>
+            <div class="relative h-48 w-full">
+              <canvas id="radarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Ranking List -->
+        <div class="lg:col-span-2 bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>📋</span> Gesamtrangliste aller Sorten
+            </h3>
+            <span class="text-xs text-stone-400" id="total-ratings-count">0 Bewertungen gesamt</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-stone-300">
+              <thead class="bg-stone-900/80 text-stone-400 text-xs uppercase font-semibold">
+                <tr>
+                  <th class="py-2.5 px-3 rounded-l-lg">Rang</th>
+                  <th class="py-2.5 px-3">Käse</th>
+                  <th class="py-2.5 px-3 text-center">Optik</th>
+                  <th class="py-2.5 px-3 text-center">Aroma</th>
+                  <th class="py-2.5 px-3 text-center">Textur</th>
+                  <th class="py-2.5 px-3 text-center">Geschm.</th>
+                  <th class="py-2.5 px-3 text-center">Abgang</th>
+                  <th class="py-2.5 px-3 text-right rounded-r-lg">Gesamt</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody" class="divide-y divide-stone-800/50">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Share & Export Buttons -->
+          <div class="mt-6 pt-4 border-t border-stone-800/80 flex flex-wrap gap-2 justify-end no-print">
+            <button onclick="shareResultsWhatsApp()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+              <span>💬</span> Rangliste für WhatsApp kopieren
+            </button>
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center gap-1.5 transition">
+              <span>🖨️</span> PDF / Drucken
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: NOTEN-MATRIX -->
+    <div id="tab-matrix" class="tab-content hidden space-y-4">
+      <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>📊</span> Bewertungs-Matrix nach Testern
+            </h3>
+            <p class="text-xs text-stone-400">Wer hat wie gestimmt? Klick auf eine Note zum Bearbeiten.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm" id="matrix-table">
+            <!-- Rendered via JS -->
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: KÄSE & DATEN VERWALTEN -->
+    <div id="tab-manage" class="tab-content hidden space-y-6">
+      
+      <!-- Cheese Management -->
+      <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🧀</span> Käse-Sortiment bearbeiten
+            </h3>
+            <p class="text-xs text-stone-400">Ergänze Sorten, passe Reifegrad, Milchtyp oder Herkunft an</p>
+          </div>
+          <button onclick="openCheeseModal(null)" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold transition flex items-center gap-1">
+            <span>+</span> Käse hinzufügen
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="cheese-manage-list">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Backup / Reset Data -->
+      <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h4 class="text-sm font-bold text-white">Datenverwaltung & Backup</h4>
+          <p class="text-xs text-stone-400" id="data-mode-text">Lade …</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportJSON()" class="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-xs text-stone-300 rounded-xl transition">
+            📥 JSON Export
+          </button>
+          <button id="btn-reset-demo" onclick="resetToDemodata()" class="hidden px-3 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-xs text-rose-300 border border-rose-800/50 rounded-xl transition">
+            🔄 Demodaten wiederherstellen
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Tester Management -->
+  <div id="modal-tester" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>👥</span> Tester verwalten
+        </h3>
+        <button onclick="closeTesterModal()" class="text-stone-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <div class="space-y-3 max-h-[50vh] overflow-y-auto" id="tester-modal-list">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <input type="text" id="new-tester-input" maxlength="40" placeholder="Neuer Name (z. B. Lisa)" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        <button onclick="addNewTester()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition">
+          Hinzufügen
+        </button>
+      </div>
+
+      <p id="tester-error" class="text-xs text-rose-400 min-h-[1em]"></p>
+
+      <div class="text-right pt-2 border-t border-stone-800">
+        <button onclick="closeTesterModal()" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl">
+          Fertig
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cheese Add/Edit -->
+  <div id="modal-cheese" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2" id="cheese-modal-title">
+          <span>🧀</span> Käse bearbeiten
+        </h3>
+        <button onclick="closeCheeseModal()" class="text-stone-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <form id="cheese-form" onsubmit="handleCheeseSubmit(event)" class="space-y-3 text-sm">
+        <input type="hidden" id="edit-cheese-id">
+        <div>
+          <label class="block text-xs font-semibold text-stone-300 mb-1">Name des Käses *</label>
+          <input type="text" id="input-cheese-name" required maxlength="80" placeholder="z. B. Manchego Curado 12M" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-1">Kategorie</label>
+            <select id="input-cheese-category" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              <option value="Hartkäse">Hartkäse</option>
+              <option value="Schnittkäse">Schnittkäse</option>
+              <option value="Weichkäse mit Weißschimmel">Weißschimmel</option>
+              <option value="Blauschimmelkäse">Blauschimmel</option>
+              <option value="Rotschmierkäse">Rotschmiere</option>
+              <option value="Frischkäse">Frischkäse</option>
+              <option value="Ziegenkäse">Ziegenkäse</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-1">Milchart</label>
+            <select id="input-cheese-milk" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              <option value="Kuh (Rohmilch)">Kuh (Rohmilch)</option>
+              <option value="Kuh (pasteurisiert)">Kuh (pasteurisiert)</option>
+              <option value="Schafmilch">Schafmilch</option>
+              <option value="Ziegenmilch">Ziegenmilch</option>
+              <option value="Büffelmilch">Büffelmilch</option>
+              <option value="Mischmilch">Mischmilch</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-1">Herkunft</label>
+            <input type="text" id="input-cheese-origin" placeholder="z. B. Jura, Frankreich" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-300 mb-1">Reifezeit</label>
+            <input type="text" id="input-cheese-age" placeholder="z. B. 18 Monate" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-stone-300 mb-1">Servier-Empfehlung & Notizen</label>
+          <input type="text" id="input-cheese-pairing" placeholder="z. B. Walnüsse, Quittengelee, kräftiger Rotwein" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <p id="cheese-error" class="text-xs text-rose-400 min-h-[1em]"></p>
+        <div class="pt-3 flex justify-end gap-2 border-t border-stone-800">
+          <button type="button" onclick="closeCheeseModal()" class="px-4 py-2 bg-stone-800 text-stone-300 rounded-xl text-xs font-semibold">Abbrechen</button>
+          <button id="cheese-submit" type="submit" class="px-4 py-2 bg-amber-500 text-stone-950 font-bold rounded-xl text-xs hover:bg-amber-400">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Wer bist du? (erstes Öffnen auf einem Gerät) -->
+  <div id="modal-who" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="border-b border-stone-800 pb-3">
+        <h3 class="text-lg font-bold text-white">👋 Wer bist du?</h3>
+        <p class="text-xs text-stone-400 mt-1">Dein Gerät merkt sich das. Wechseln kannst du jederzeit oben bei „Tester“.</p>
+      </div>
+      <div id="who-list" class="space-y-2"></div>
+      <div class="pt-2 border-t border-stone-800">
+        <label class="block text-xs font-semibold text-stone-300 mb-2">Neu dabei?</label>
+        <div class="flex gap-2">
+          <input type="text" id="who-new-input" maxlength="40" placeholder="Dein Vorname" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          <button onclick="addMeAsNew()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition">Los</button>
+        </div>
+        <p id="who-error" class="text-xs text-rose-400 mt-2 min-h-[1em]"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="margin-bottom: env(safe-area-inset-bottom)" class="fixed bottom-5 right-5 left-5 sm:left-auto justify-center bg-amber-500 text-stone-950 px-4 py-2.5 rounded-xl font-bold shadow-2xl transition-all transform translate-y-20 opacity-0 pointer-events-none z-50 flex items-center gap-2 text-sm">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Gespeichert!</span>
+  </div>
+
 </body>
 </html>

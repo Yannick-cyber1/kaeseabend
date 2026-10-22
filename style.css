@@ -1,0 +1,86 @@
+/* ==========================================================================
+   Käseabend – Tasting & Scorecard Styles
+   ========================================================================== */
+
+/* Schriftarten & Basiseinstellungen */
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Range-Slider Styling (Webkit / Chrome / Safari / iOS) */
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #d97706;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffffff;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  background: #f59e0b;
+  transform: scale(1.1);
+}
+
+input[type=range]::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3);
+}
+
+/* Range-Slider Styling (Firefox) */
+input[type=range]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #d97706;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffffff;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+input[type=range]::-moz-range-thumb:hover {
+  background: #f59e0b;
+  transform: scale(1.1);
+}
+
+/* Subtile Scrollbars für Menüs & Tabellen */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1c1917;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #44403c;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #78716c;
+}
+
+/* Druck- & PDF-Optimierung */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #1c1917 !important;
+  }
+  table, tr, td, th {
+    color: #1c1917 !important;
+    border-color: #d6d3d1 !important;
+  }
+}
