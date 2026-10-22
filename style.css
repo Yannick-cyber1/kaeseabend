@@ -1,8 +1,7 @@
 /* ==========================================================================
-   Käseabend – Tasting & Scorecard Styles
+   Käseabend – Tasting & Scorecard Styles (Variante A + Reveal-Modus)
    ========================================================================== */
 
-/* Schriftarten & Basiseinstellungen */
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
@@ -51,7 +50,7 @@ input[type=range]::-moz-range-thumb:hover {
   transform: scale(1.1);
 }
 
-/* Subtile Scrollbars für Menüs & Tabellen */
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -68,6 +67,16 @@ input[type=range]::-moz-range-thumb:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #78716c;
+}
+
+/* Reveal Glow Animation */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+}
+
+.reveal-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
 }
 
 /* Druck- & PDF-Optimierung */

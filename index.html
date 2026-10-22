@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Käseabend – Tasting & Scorecard</title>
+  <title>Käseabend – Blind Tasting & Reveal</title>
   <meta name="theme-color" content="#0c0a09">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -22,13 +22,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
-  <!-- App JavaScript Logic (Modul: lädt logic.js, store.js, config.js) -->
+  <!-- App Logic (Modul: lädt logic.js, store.js, config.js) -->
   <script type="module" src="app.js"></script>
 </head>
 <body class="bg-stone-900 text-stone-100 min-h-screen antialiased flex flex-col selection:bg-amber-500 selection:text-stone-950">
 
+  <!-- Header mit fester Geräte-Bindung (Variante A) -->
   <div class="sticky top-0 z-40" style="padding-top: env(safe-area-inset-top)">
-  <!-- Header -->
   <header class="border-b border-stone-800 bg-stone-950/90 backdrop-blur">
     <div class="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -37,17 +37,23 @@
         </div>
         <div>
           <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            Käseabend <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">Tasting Suite</span>
+            Käseabend <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">Blind Tasting & Reveal</span>
           </h1>
-          <p class="text-xs text-stone-400">Sensorische 1.0–10.0 Bewertung (0,5er Schritte)</p>
+          <p class="text-xs text-stone-400">1.0–10.0 Skala (0,5er Schritte) • Noten bis Rundenende gesperrt</p>
         </div>
       </div>
 
-      <!-- Quick Tester Switcher in Header -->
-      <div class="flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-xl p-1.5 shadow-inner max-w-full">
-        <span class="text-xs font-semibold text-stone-400 pl-2 hidden sm:inline">Tester:</span>
-        <div id="header-tester-pills" class="flex items-center gap-1 overflow-x-auto"></div>
-        <button onclick="openTesterModal()" title="Tester verwalten" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center text-sm transition">
+      <!-- User Device Identity Badge (Lock zu aktuellem Nutzer) -->
+      <div class="flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-xl p-1.5 shadow-inner">
+        <div class="flex items-center gap-2 px-2.5 py-1">
+          <span class="text-xs text-stone-400 hidden sm:inline">Angemeldet als:</span>
+          <span id="current-user-avatar" class="text-base">🔒</span>
+          <span id="current-user-name" class="font-bold text-sm text-amber-400">…</span>
+        </div>
+        <button onclick="promptSwitchUser()" title="Tester wechseln (Gerät wechseln)" class="px-2.5 py-1 text-[11px] rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition flex items-center gap-1">
+          <span>🔄</span> <span>Wechseln</span>
+        </button>
+        <button onclick="openTesterManagementModal()" title="Tester-Liste verwalten" class="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center text-xs transition">
           ⚙️
         </button>
       </div>
@@ -58,13 +64,13 @@
   <nav class="border-b border-stone-800/80 bg-stone-900/90 backdrop-blur no-print">
     <div class="max-w-6xl mx-auto px-4 flex gap-1 sm:gap-2 overflow-x-auto py-2 text-sm font-medium">
       <button onclick="switchTab('taste')" id="tab-btn-taste" class="tab-btn px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-semibold flex items-center gap-2 transition whitespace-nowrap">
-        <span>✍️</span> Verkostung
-      </button>
-      <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
-        <span>🏆</span> Rangliste & Awards
+        <span>✍️</span> Meine Bewertung
       </button>
       <button onclick="switchTab('matrix')" id="tab-btn-matrix" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
-        <span>📊</span> Noten-Matrix
+        <span>🔒</span> Live-Matrix (Blind Tasting)
+      </button>
+      <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
+        <span>🏆</span> Rangliste & Reveal
       </button>
       <button onclick="switchTab('manage')" id="tab-btn-manage" class="tab-btn px-4 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-stone-800/60 flex items-center gap-2 transition whitespace-nowrap">
         <span>🧀</span> Käse verwalten
@@ -77,7 +83,7 @@
   <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
     <div id="status-banner" class="hidden"></div>
 
-    <!-- TAB 1: VERKOSTUNG -->
+    <!-- TAB 1: MEINE BEWERTUNG -->
     <div id="tab-taste" class="tab-content space-y-6">
       <div id="taste-empty" class="hidden bg-stone-950/60 border border-stone-800 rounded-2xl p-10 text-center">
         <div class="text-5xl mb-3">🧀</div>
@@ -87,7 +93,7 @@
       </div>
       <div id="taste-main" class="space-y-6">
 
-      <!-- Top Selection Bar: Cheese + Round Selector -->
+      <!-- Top Selection Bar: Cheese + Round Selector + Live Reveal Status -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-stone-950/60 border border-stone-800/80 p-4 rounded-2xl shadow-xl">
         <div class="md:col-span-2">
           <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">Aktuell im Glas & auf dem Teller</label>
@@ -104,21 +110,9 @@
           </div>
         </div>
 
-        <div class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-xs text-stone-400">
-            <span>Aktiver Tester:</span>
-            <span id="active-tester-name" class="font-bold text-amber-400 text-sm">Yannick</span>
-          </div>
-          <div class="mt-2 flex items-center justify-between">
-            <div>
-              <div class="text-[10px] uppercase text-stone-500 font-semibold">Deine Gesamtnote</div>
-              <div class="text-2xl font-black text-amber-400 font-mono" id="current-total-live">7.5 <span class="text-xs text-stone-500 font-normal">/ 10</span></div>
-            </div>
-            <div class="text-right">
-              <div class="text-[10px] uppercase text-stone-500 font-semibold">Gruppen-Schnitt</div>
-              <div class="text-xl font-bold text-stone-200 font-mono" id="cheese-group-avg">-- <span class="text-xs text-stone-500 font-normal">/ 10</span></div>
-            </div>
-          </div>
+        <!-- Blind Tasting Status Card -->
+        <div id="taste-status-card" class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col justify-between">
+          <!-- Filled via JS: Shows Reveal State e.g. 🔒 2/3 Stimmen vs 🎉 Aufgedeckt! -->
         </div>
       </div>
 
@@ -127,9 +121,9 @@
         <div class="flex items-center justify-between border-b border-stone-800 pb-3">
           <div>
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <span>🔬</span> Sensorische Bewertung
+              <span>🔬</span> Deine sensorische Note
             </h2>
-            <p class="text-xs text-stone-400">Punkte von 1.0 (schwach) bis 10.0 (Spitzenklasse) in 0,5er Schritten</p>
+            <p class="text-xs text-stone-400">Punkte von 1.0 (flach) bis 10.0 (Götterstoff) in 0,5er Schritten</p>
           </div>
           <button onclick="resetCurrentFormToDefault()" class="text-xs text-stone-400 hover:text-amber-400 transition underline underline-offset-2">
             Zurücksetzen
@@ -149,31 +143,60 @@
             </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-stone-300 mb-2">Persönliche Verkostungsnotiz</label>
+            <label class="block text-xs font-semibold text-stone-300 mb-2">Deine persönliche Verkostungsnotiz</label>
             <textarea id="tasting-notes" rows="3" placeholder="z. B. Wunderbare Salzkristalle, harmoniert perfekt mit Feigensenf..." class="w-full bg-stone-900 border border-stone-800 rounded-xl p-2.5 text-xs text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition"></textarea>
           </div>
         </div>
 
         <!-- Actions -->
-        <div class="flex flex-wrap items-center justify-end gap-3 pt-3">
-          <button id="save-btn" onclick="saveRating(false)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
-            <span>💾</span> Bewertung sichern
-          </button>
-          <button id="save-next-btn" onclick="saveRating(true)" class="px-5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 hover:text-white font-semibold text-sm border border-stone-700 transition flex items-center gap-2">
-            <span>➡️</span> Sichern & Nächster Tester
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+          <div class="text-xs text-stone-400 flex items-center gap-1.5">
+            <span>ℹ️</span> Deine Note bleibt geheim, bis alle Tester fertig sind.
+          </div>
+          <button id="save-btn" onclick="saveMyRating()" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+            <span>💾</span> Note verbindlich abgeben
           </button>
         </div>
-        <p id="form-status" class="text-[11px] text-stone-500 text-right"></p>
+        <p id="form-status" class="text-[11px] text-emerald-400 text-right"></p>
       </div>
       </div>
     </div>
 
-    <!-- TAB 2: RANGLISTE & AWARDS -->
+    <!-- TAB 2: LIVE-MATRIX (BLIND TASTING) -->
+    <div id="tab-matrix" class="tab-content hidden space-y-4">
+      <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🔒</span> Verkostungs-Status & Blind-Matrix
+            </h3>
+            <p class="text-xs text-stone-400">Fremde Noten bleiben mit 🔒 verborgen, bis alle Teilnehmer abgegeben haben.</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs">
+            <span class="flex items-center gap-1 text-emerald-400 font-semibold"><span>🔓</span> Aufgedeckt</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold"><span>🔒</span> Noch verdeckt</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm" id="matrix-table">
+            <!-- Rendered via JS -->
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RANGLISTE & REVEAL -->
     <div id="tab-leaderboard" class="tab-content hidden space-y-6">
       
-      <!-- Special Awards Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="awards-container">
-        <!-- Rendered via JS: Aroma-Bombe, Schmelz-Champion, Spaltpilz, Konsens -->
+      <!-- Special Awards Row (Nur für aufgedeckte Käse) -->
+      <div>
+        <h3 class="text-sm font-bold text-stone-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span>🏅</span> Feinschmecker-Awards (Offizielle Sieger)
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="awards-container">
+          <!-- Rendered via JS: Aroma-Bombe, Schmelz-Champion, Spaltpilz, Konsens -->
+        </div>
       </div>
 
       <!-- Podium & Table Grid -->
@@ -184,14 +207,14 @@
             <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1">
               <span>👑</span> Käsekönig & Podium
             </h3>
-            <p class="text-xs text-stone-400 mb-4">Höchste Gesamtdurchschnitte der Gruppe</p>
+            <p class="text-xs text-stone-400 mb-4">Nur vollständig aufgedeckte Sorten</p>
             <div id="podium-view" class="space-y-3">
               <!-- Rendered via JS -->
             </div>
           </div>
 
           <div class="mt-6 pt-4 border-t border-stone-800/80">
-            <h4 class="text-xs font-semibold text-stone-400 mb-2">Aroma-Radar (Sieger vs. Durchschnitt)</h4>
+            <h4 class="text-xs font-semibold text-stone-400 mb-2">Sensorik-Radar (Sieger vs. Durchschnitt)</h4>
             <div class="relative h-48 w-full">
               <canvas id="radarChart"></canvas>
             </div>
@@ -202,9 +225,9 @@
         <div class="lg:col-span-2 bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>📋</span> Gesamtrangliste aller Sorten
+              <span>📋</span> Gesamtrangliste
             </h3>
-            <span class="text-xs text-stone-400" id="total-ratings-count">0 Bewertungen gesamt</span>
+            <span class="text-xs text-stone-400" id="total-ratings-count">--</span>
           </div>
 
           <div class="overflow-x-auto">
@@ -213,12 +236,10 @@
                 <tr>
                   <th class="py-2.5 px-3 rounded-l-lg">Rang</th>
                   <th class="py-2.5 px-3">Käse</th>
-                  <th class="py-2.5 px-3 text-center">Optik</th>
+                  <th class="py-2.5 px-3 text-center">Status</th>
                   <th class="py-2.5 px-3 text-center">Aroma</th>
-                  <th class="py-2.5 px-3 text-center">Textur</th>
                   <th class="py-2.5 px-3 text-center">Geschm.</th>
-                  <th class="py-2.5 px-3 text-center">Abgang</th>
-                  <th class="py-2.5 px-3 text-right rounded-r-lg">Gesamt</th>
+                  <th class="py-2.5 px-3 text-right rounded-r-lg">Gesamtschnitt</th>
                 </tr>
               </thead>
               <tbody id="leaderboard-tbody" class="divide-y divide-stone-800/50">
@@ -240,26 +261,6 @@
       </div>
     </div>
 
-    <!-- TAB 3: NOTEN-MATRIX -->
-    <div id="tab-matrix" class="tab-content hidden space-y-4">
-      <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>📊</span> Bewertungs-Matrix nach Testern
-            </h3>
-            <p class="text-xs text-stone-400">Wer hat wie gestimmt? Klick auf eine Note zum Bearbeiten.</p>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm" id="matrix-table">
-            <!-- Rendered via JS -->
-          </table>
-        </div>
-      </div>
-    </div>
-
     <!-- TAB 4: KÄSE & DATEN VERWALTEN -->
     <div id="tab-manage" class="tab-content hidden space-y-6">
       
@@ -270,7 +271,7 @@
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span>🧀</span> Käse-Sortiment bearbeiten
             </h3>
-            <p class="text-xs text-stone-400">Ergänze Sorten, passe Reifegrad, Milchtyp oder Herkunft an</p>
+            <p class="text-xs text-stone-400">Sorten ergänzen, Herkunft, Reifezeit oder Pairing-Tipps ändern</p>
           </div>
           <button onclick="openCheeseModal(null)" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold transition flex items-center gap-1">
             <span>+</span> Käse hinzufügen
@@ -286,14 +287,14 @@
       <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h4 class="text-sm font-bold text-white">Datenverwaltung & Backup</h4>
-          <p class="text-xs text-stone-400" id="data-mode-text">Lade …</p>
+          <p class="text-xs text-stone-400">Alle Daten liegen gemeinsam online. Fremde Noten bleiben bis zum Aufdecken auch in der Datenbank verborgen.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="exportJSON()" class="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-xs text-stone-300 rounded-xl transition">
             📥 JSON Export
           </button>
-          <button id="btn-reset-demo" onclick="resetToDemodata()" class="hidden px-3 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-xs text-rose-300 border border-rose-800/50 rounded-xl transition">
-            🔄 Demodaten wiederherstellen
+          <button onclick="logoutHere()" class="px-3 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-xs text-rose-300 border border-rose-800/50 rounded-xl transition">
+            🚪 Auf diesem Gerät abmelden
           </button>
         </div>
       </div>
@@ -302,40 +303,90 @@
 
   </main>
 
-  <!-- Modal: Tester Management -->
-  <div id="modal-tester" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+  <!-- MODAL 1: ANMELDUNG (Name wählen + Passwort) -->
+  <div id="modal-onboarding" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-amber-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 reveal-glow max-h-[92vh] overflow-y-auto">
+      <div class="text-center">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 text-3xl flex items-center justify-center mx-auto border border-amber-500/30">🧀</div>
+        <h2 class="text-xl font-bold text-white tracking-tight mt-3">Willkommen beim Käseabend!</h2>
+        <p class="text-xs text-stone-400 mt-1">Wähle deinen Namen. Jeder Name ist mit einem eigenen Passwort geschützt – so kann niemand unter deinem Namen bewerten.</p>
+      </div>
+
+      <!-- Schritt 1: Namen wählen -->
+      <div id="login-step-pick" class="space-y-4">
+        <div class="space-y-2.5" id="onboarding-user-list"></div>
+        <form onsubmit="submitRegister(event)" class="pt-3 border-t border-stone-800 space-y-2" autocomplete="on">
+          <label class="block text-xs font-semibold text-stone-300">Neu dabei? Namen + Passwort anlegen</label>
+          <input type="text" id="register-name" maxlength="40" placeholder="Dein Vorname" autocomplete="username" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          <div class="flex gap-2">
+            <input type="password" id="register-password" maxlength="72" placeholder="Passwort (min. 4 Zeichen)" autocomplete="new-password" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <button id="register-submit" type="submit" class="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition">Los</button>
+          </div>
+          <p id="register-error" class="text-xs text-rose-400 min-h-[1em]"></p>
+        </form>
+      </div>
+
+      <!-- Schritt 2: Passwort eingeben oder festlegen -->
+      <form id="login-step-password" onsubmit="submitLogin(event)" class="hidden space-y-3" autocomplete="on">
+        <button type="button" onclick="backToPick()" class="text-xs text-stone-400 hover:text-amber-400 transition">← anderer Name</button>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-stone-950 border border-amber-500/40">
+          <span id="login-avatar" class="text-2xl">👤</span>
+          <span id="login-name" class="font-bold text-white"></span>
+        </div>
+        <p id="login-hint" class="text-xs text-stone-400"></p>
+        <input type="text" id="login-username" autocomplete="username" class="hidden" tabindex="-1" aria-hidden="true">
+        <input type="password" id="login-password" maxlength="72" placeholder="Passwort" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+        <div id="login-repeat-wrap" class="hidden">
+          <input type="password" id="login-repeat" maxlength="72" placeholder="Passwort wiederholen" autocomplete="new-password" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <p id="login-error" class="text-xs text-rose-400 min-h-[1em]"></p>
+        <button id="login-submit" type="submit" class="w-full px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm transition">Anmelden</button>
+        <p id="login-forgot" class="text-[11px] text-stone-500 text-center">Passwort vergessen? Sag Yannick Bescheid – er kann es zurücksetzen.</p>
+      </form>
+
+      <div class="pt-3 border-t border-stone-800 text-center space-y-2">
+        <p class="text-[11px] text-stone-500">🔒 Blindverkostung aktiviert: Noten der Freunde bleiben bis zum Rundenende verdeckt.</p>
+        <button id="login-cancel" onclick="closeLogin()" class="hidden px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: TESTER MANAGEMENT -->
+  <div id="modal-tester" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-stone-800 pb-3">
         <h3 class="text-lg font-bold text-white flex items-center gap-2">
           <span>👥</span> Tester verwalten
         </h3>
-        <button onclick="closeTesterModal()" class="text-stone-400 hover:text-white text-xl">✕</button>
+        <button onclick="closeTesterManagementModal()" class="text-stone-400 hover:text-white text-xl">✕</button>
       </div>
 
-      <div class="space-y-3 max-h-[50vh] overflow-y-auto" id="tester-modal-list">
+      <div class="space-y-3 max-h-[45vh] overflow-y-auto" id="tester-modal-list">
         <!-- Rendered via JS -->
       </div>
 
       <div class="pt-2 flex gap-2">
-        <input type="text" id="new-tester-input" maxlength="40" placeholder="Neuer Name (z. B. Lisa)" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        <input type="text" id="new-tester-input" maxlength="40" placeholder="Neuer Tester (z. B. Lisa)" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
         <button onclick="addNewTester()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition">
           Hinzufügen
         </button>
       </div>
 
       <p id="tester-error" class="text-xs text-rose-400 min-h-[1em]"></p>
+      <p class="text-[11px] text-stone-500">Neue Personen legen ihr Passwort beim ersten Öffnen selbst fest. Löschen kannst du dich selbst und Personen ohne Passwort.</p>
 
-      <div class="text-right pt-2 border-t border-stone-800">
-        <button onclick="closeTesterModal()" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl">
+      <div class="flex justify-between gap-2 pt-2 border-t border-stone-800">
+        <button onclick="logoutHere()" class="px-4 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 text-xs font-semibold rounded-xl">🚪 Abmelden</button>
+        <button onclick="closeTesterManagementModal()" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl">
           Fertig
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Cheese Add/Edit -->
-  <div id="modal-cheese" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+  <!-- MODAL 3: KÄSE ADD/EDIT -->
+  <div id="modal-cheese" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-stone-800 pb-3">
         <h3 class="text-lg font-bold text-white flex items-center gap-2" id="cheese-modal-title">
           <span>🧀</span> Käse bearbeiten
@@ -395,25 +446,6 @@
           <button id="cheese-submit" type="submit" class="px-4 py-2 bg-amber-500 text-stone-950 font-bold rounded-xl text-xs hover:bg-amber-400">Speichern</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Modal: Wer bist du? (erstes Öffnen auf einem Gerät) -->
-  <div id="modal-who" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="border-b border-stone-800 pb-3">
-        <h3 class="text-lg font-bold text-white">👋 Wer bist du?</h3>
-        <p class="text-xs text-stone-400 mt-1">Dein Gerät merkt sich das. Wechseln kannst du jederzeit oben bei „Tester“.</p>
-      </div>
-      <div id="who-list" class="space-y-2"></div>
-      <div class="pt-2 border-t border-stone-800">
-        <label class="block text-xs font-semibold text-stone-300 mb-2">Neu dabei?</label>
-        <div class="flex gap-2">
-          <input type="text" id="who-new-input" maxlength="40" placeholder="Dein Vorname" class="flex-1 min-w-0 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
-          <button onclick="addMeAsNew()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition">Los</button>
-        </div>
-        <p id="who-error" class="text-xs text-rose-400 mt-2 min-h-[1em]"></p>
-      </div>
     </div>
   </div>
 

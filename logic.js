@@ -216,3 +216,72 @@ export function escapeHtml(value) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 }
+
+// ── Blind Tasting & Anmeldung ───────────────────────────────────
+
+export const MIN_PASSWORD = 4;
+export const MAX_PASSWORD = 72;
+
+/** Ist der Käse aufgedeckt? (wird in der Datenbank gesetzt, sobald alle bewertet haben) */
+export function isRevealed(cheese) {
+  return !!(cheese && cheese.revealed_at);
+}
+
+/** Wer hat einen Käse schon bewertet, wer fehlt? progress = [{cheese_id, tester_id}] */
+export function progressFor(cheeseId, testers, progress) {
+  const done = new Set(progress.filter((p) => p.cheese_id === cheeseId).map((p) => p.tester_id));
+  const doneTesters = testers.filter((t) => done.has(t.id));
+  const missing = testers.filter((t) => !done.has(t.id));
+  return {
+    count: doneTesters.length,
+    total: testers.length,
+    done: doneTesters.map((t) => t.id),
+    missing: missing.map((t) => t.name),
+    complete: testers.length > 0 && missing.length === 0,
+  };
+}
+
+export function hasRated(progress, cheeseId, testerId) {
+  return progress.some((p) => p.cheese_id === cheeseId && p.tester_id === testerId);
+}
+
+/** Rangliste nur aus aufgedeckten Käsen. */
+export function revealedBoard(cheeses, testers, ratings) {
+  return leaderboard(cheeses.filter(isRevealed), testers, ratings);
+}
+
+/** Prüft ein Passwort (und optional die Wiederholung). */
+export function validatePassword(password, repeat) {
+  const pw = String(password ?? '');
+  if (pw.length < MIN_PASSWORD) return `Das Passwort braucht mindestens ${MIN_PASSWORD} Zeichen.`;
+  if (pw.length > MAX_PASSWORD) return `Das Passwort ist zu lang (max. ${MAX_PASSWORD} Zeichen).`;
+  if (repeat !== undefined && pw !== String(repeat ?? '')) return 'Die beiden Passwörter sind nicht gleich.';
+  return null;
+}
+
+/** Löschen erlaubt: sich selbst, oder Personen ohne Passwort. */
+export function canRemoveTester(tester, meId) {
+  return !!tester && (tester.id === meId || !tester.has_password);
+}
+
+/** WhatsApp-Text: offizielle (aufgedeckte) Rangliste + was noch läuft. */
+export function buildRevealShareText(cheeses, testers, ratings, progress) {
+  const medals = ['🥇', '🥈', '🥉'];
+  const board = revealedBoard(cheeses, testers, ratings).filter((i) => i.summary.count > 0);
+  let text = '🧀 *KÄSEABEND - ERGEBNISSE & SIEGER* 🧀\n';
+  text += `Tester: ${testers.map((t) => t.name).join(', ')}\n\n`;
+  if (board.length === 0) text += 'Noch keine Runde vollständig aufgedeckt.\n';
+  board.forEach((item) => {
+    const medal = item.rank <= 3 ? medals[item.rank - 1] : '•';
+    text += `${medal} *${item.cheese.name}*: ${formatScore(item.summary.total)} / 10\n`;
+  });
+  const open = cheeses.filter((c) => !isRevealed(c));
+  if (open.length) {
+    text += '\n⏳ *Noch in Verkostung (Blind Tasting):*\n';
+    open.forEach((c) => {
+      const p = progressFor(c.id, testers, progress);
+      text += `• ${c.name} (${p.count}/${p.total} Stimmen)\n`;
+    });
+  }
+  return text;
+}
