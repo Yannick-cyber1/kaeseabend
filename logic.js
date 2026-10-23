@@ -131,7 +131,10 @@ export function awards(board) {
     return (wantMax ? v > b + EPS : v < b - EPS) ? item : best;
   });
   const multi = rated.filter((i) => i.summary.count >= 2);
+  const best = {};
+  for (const c of CRITERIA) best[c.key] = pick(rated, (i) => i.summary.avg[c.key]);
   return {
+    best,
     aroma: pick(rated, (i) => i.summary.avg.aroma),
     texture: pick(rated, (i) => i.summary.avg.texture),
     contested: multi.length ? pick(multi, (i) => i.summary.stdDev, true) : null,

@@ -597,8 +597,7 @@ function renderLeaderboard() {
           <td class="py-3 px-3 font-bold font-mono whitespace-nowrap ${item.rank <= 3 ? 'text-amber-400' : 'text-stone-500'}">${badge}</td>
           <td class="py-3 px-3"><div class="font-bold text-white">${esc(item.cheese.name)}</div>${sub ? `<div class="text-[11px] text-stone-400">${sub}</div>` : ''}</td>
           <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-semibold whitespace-nowrap">🔓 Offiziell</span></td>
-          <td class="py-3 px-3 text-center font-mono text-stone-300">${formatScore(s.avg.aroma)}</td>
-          <td class="py-3 px-3 text-center font-mono text-stone-300">${formatScore(s.avg.taste)}</td>
+          ${CRITERIA.map((c) => `<td class="py-3 px-2 text-center font-mono text-stone-300">${formatScore(s.avg[c.key])}</td>`).join('')}
           <td class="py-3 px-3 text-right">
             <span class="font-mono font-bold text-base ${s.total >= 8.5 ? 'text-amber-400' : 'text-stone-200'}">${formatScore(s.total)}</span>
             <span class="text-[10px] text-stone-400 block whitespace-nowrap">${s.count} Votings</span>
@@ -612,12 +611,11 @@ function renderLeaderboard() {
           <td class="py-3 px-3 font-bold font-mono text-stone-500">⏳</td>
           <td class="py-3 px-3"><div class="font-bold text-white">${esc(c.name)}</div>${sub ? `<div class="text-[11px] text-stone-400">${sub}</div>` : ''}</td>
           <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-semibold whitespace-nowrap">🔒 ${p.count}/${p.total} Stimmen</span></td>
-          <td class="py-3 px-3 text-center font-mono text-stone-300">🔒</td>
-          <td class="py-3 px-3 text-center font-mono text-stone-300">🔒</td>
+          ${CRITERIA.map(() => '<td class="py-3 px-2 text-center font-mono text-stone-500">🔒</td>').join('')}
           <td class="py-3 px-3 text-right"><span class="text-stone-500 text-xs italic">Wartet auf ${esc(p.missing.join(', ') || '–')}</span></td>
         </tr>`;
     }));
-    tbody.innerHTML = rows.join('') || '<tr><td colspan="6" class="py-6 text-center text-xs text-stone-500">Noch kein Käse angelegt.</td></tr>';
+    tbody.innerHTML = rows.join('') || '<tr><td colspan="9" class="py-6 text-center text-xs text-stone-500">Noch kein Käse angelegt.</td></tr>';
   }
 
   const countEl = $('total-ratings-count');
@@ -625,6 +623,35 @@ function renderLeaderboard() {
 
   renderAwards(board);
   if (state.tab === 'leaderboard') renderRadar(board);
+}
+
+// Ein Award pro Kriterium + Spaltpilz & Konsens
+const CRITERION_AWARDS = {
+  optics:  { icon: '👀', title: 'Augenschmaus',      unit: 'in Optik',     hint: 'Schönste Optik & Haptik',      color: 'sky' },
+  aroma:   { icon: '👃', title: 'Aroma-Bombe',       unit: 'im Duft',      hint: 'Höchste Duft-Intensität',      color: 'amber' },
+  texture: { icon: '🧈', title: 'Schmelz-König',     unit: 'in Textur',    hint: 'Bestes Mundgefühl',            color: 'orange' },
+  taste:   { icon: '😋', title: 'Geschmacks-Gipfel', unit: 'im Geschmack', hint: 'Harmonischster Geschmack',     color: 'yellow' },
+  finish:  { icon: '⏳', title: 'Langer Atem',       unit: 'im Abgang',    hint: 'Längster, schönster Nachhall', color: 'violet' },
+};
+const AWARD_STYLES = {
+  sky:     ['from-sky-500/10', 'border-sky-500/20', 'text-sky-400'],
+  amber:   ['from-amber-500/10', 'border-amber-500/20', 'text-amber-400'],
+  orange:  ['from-orange-500/10', 'border-orange-500/20', 'text-orange-400'],
+  yellow:  ['from-yellow-500/10', 'border-yellow-500/20', 'text-yellow-300'],
+  violet:  ['from-violet-500/10', 'border-violet-500/20', 'text-violet-400'],
+  rose:    ['from-rose-500/10', 'border-rose-500/20', 'text-rose-400'],
+  emerald: ['from-emerald-500/10', 'border-emerald-500/20', 'text-emerald-400'],
+};
+
+function awardCard(color, icon, title, name, value, hint) {
+  const [from, border, text] = AWARD_STYLES[color];
+  return `
+    <div class="bg-gradient-to-br ${from} to-transparent border ${border} rounded-2xl p-3 sm:p-4 min-w-0">
+      <div class="text-sm sm:text-xl font-semibold sm:font-normal mb-1 leading-tight">${icon} ${title}</div>
+      <div class="text-sm font-bold text-white truncate">${name}</div>
+      <div class="text-[11px] sm:text-xs ${text} font-mono mt-1">${value}</div>
+      <div class="text-[10px] text-stone-400 mt-0.5">${hint}</div>
+    </div>`;
 }
 
 function renderAwards(board) {
@@ -635,31 +662,17 @@ function renderAwards(board) {
     container.innerHTML = '<div class="col-span-full text-xs text-stone-500 text-center py-4 bg-stone-950/40 rounded-xl border border-stone-800">Awards werden vergeben, sobald mindestens eine Runde komplett aufgedeckt wurde.</div>';
     return;
   }
-  container.innerHTML = `
-    <div class="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 rounded-2xl p-4">
-      <div class="text-xl mb-1">👃 Aroma-Bombe</div>
-      <div class="text-sm font-bold text-white truncate">${esc(a.aroma.cheese.name)}</div>
-      <div class="text-xs text-amber-400 font-mono mt-1">${formatScore(a.aroma.summary.avg.aroma)} / 10 im Duft</div>
-      <div class="text-[10px] text-stone-400 mt-0.5">Höchste Duft-Intensität</div>
-    </div>
-    <div class="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 rounded-2xl p-4">
-      <div class="text-xl mb-1">🧈 Schmelz-König</div>
-      <div class="text-sm font-bold text-white truncate">${esc(a.texture.cheese.name)}</div>
-      <div class="text-xs text-orange-400 font-mono mt-1">${formatScore(a.texture.summary.avg.texture)} / 10 in Textur</div>
-      <div class="text-[10px] text-stone-400 mt-0.5">Bestes Mundgefühl</div>
-    </div>
-    <div class="bg-gradient-to-br from-rose-500/10 to-transparent border border-rose-500/20 rounded-2xl p-4">
-      <div class="text-xl mb-1">⚡ Spaltpilz</div>
-      <div class="text-sm font-bold text-white truncate">${a.contested ? esc(a.contested.cheese.name) : 'Noch offen'}</div>
-      <div class="text-xs text-rose-400 font-mono mt-1">${a.contested ? `${formatSpread(a.contested.summary.stdDev)} Notenspanne` : 'Mind. 2 Votings nötig'}</div>
-      <div class="text-[10px] text-stone-400 mt-0.5">Hier scheiden sich die Geister</div>
-    </div>
-    <div class="bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-2xl p-4">
-      <div class="text-xl mb-1">🤝 Einhelliger Konsens</div>
-      <div class="text-sm font-bold text-white truncate">${a.consensus ? esc(a.consensus.cheese.name) : 'Noch offen'}</div>
-      <div class="text-xs text-emerald-400 font-mono mt-1">${a.consensus ? `${formatSpread(a.consensus.summary.stdDev)} Abweichung` : 'Mind. 2 Votings nötig'}</div>
-      <div class="text-[10px] text-stone-400 mt-0.5">Alle Tester einer Meinung</div>
-    </div>`;
+  const perCriterion = CRITERIA.map((c) => {
+    const def = CRITERION_AWARDS[c.key];
+    const winner = a.best[c.key];
+    return awardCard(def.color, def.icon, def.title, esc(winner.cheese.name),
+      `${formatScore(winner.summary.avg[c.key])} / 10 ${def.unit}`, def.hint);
+  });
+  container.innerHTML = perCriterion.join('')
+    + awardCard('rose', '⚡', 'Spaltpilz', a.contested ? esc(a.contested.cheese.name) : 'Noch offen',
+      a.contested ? `${formatSpread(a.contested.summary.stdDev)} Notenspanne` : 'Mind. 2 Votings nötig', 'Hier scheiden sich die Geister')
+    + awardCard('emerald', '🤝', 'Einhelliger Konsens', a.consensus ? esc(a.consensus.cheese.name) : 'Noch offen',
+      a.consensus ? `${formatSpread(a.consensus.summary.stdDev)} Abweichung` : 'Mind. 2 Votings nötig', 'Alle Tester einer Meinung');
 }
 
 function renderRadar(board) {

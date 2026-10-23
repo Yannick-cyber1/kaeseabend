@@ -194,15 +194,15 @@
         <h3 class="text-sm font-bold text-stone-300 uppercase tracking-wider mb-3 flex items-center gap-2">
           <span>🏅</span> Feinschmecker-Awards (Offizielle Sieger)
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="awards-container">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" id="awards-container">
           <!-- Rendered via JS: Aroma-Bombe, Schmelz-Champion, Spaltpilz, Konsens -->
         </div>
       </div>
 
-      <!-- Podium & Table Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Gesamtrangliste (volle Breite) + darunter Podium & Radar -->
+      <div class="grid grid-cols-1 gap-6">
         <!-- Podium Top 3 -->
-        <div class="lg:col-span-1 bg-stone-950/60 border border-stone-800 rounded-2xl p-5 flex flex-col justify-between">
+        <div class="bg-stone-950/60 border border-stone-800 rounded-2xl p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1">
               <span>👑</span> Käsekönig & Podium
@@ -213,16 +213,16 @@
             </div>
           </div>
 
-          <div class="mt-6 pt-4 border-t border-stone-800/80">
+          <div class="pt-4 border-t lg:pt-0 lg:border-t-0 lg:border-l lg:pl-6 border-stone-800/80">
             <h4 class="text-xs font-semibold text-stone-400 mb-2">Sensorik-Radar (Sieger vs. Durchschnitt)</h4>
-            <div class="relative h-48 w-full">
+            <div class="relative h-56 w-full">
               <canvas id="radarChart"></canvas>
             </div>
           </div>
         </div>
 
         <!-- Full Ranking List -->
-        <div class="lg:col-span-2 bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
+        <div class="order-first bg-stone-950/60 border border-stone-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span>📋</span> Gesamtrangliste
@@ -237,9 +237,12 @@
                   <th class="py-2.5 px-3 rounded-l-lg">Rang</th>
                   <th class="py-2.5 px-3">Käse</th>
                   <th class="py-2.5 px-3 text-center">Status</th>
-                  <th class="py-2.5 px-3 text-center">Aroma</th>
+                  <th class="py-2.5 px-3 text-center">Optik</th>
+                  <th class="py-2.5 px-3 text-center">Duft</th>
+                  <th class="py-2.5 px-3 text-center">Textur</th>
                   <th class="py-2.5 px-3 text-center">Geschm.</th>
-                  <th class="py-2.5 px-3 text-right rounded-r-lg">Gesamtschnitt</th>
+                  <th class="py-2.5 px-3 text-center">Abgang</th>
+                  <th class="py-2.5 px-3 text-right rounded-r-lg whitespace-nowrap">Gesamtschnitt</th>
                 </tr>
               </thead>
               <tbody id="leaderboard-tbody" class="divide-y divide-stone-800/50">
